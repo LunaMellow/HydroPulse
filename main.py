@@ -6,6 +6,7 @@
     BMA1020 - Mathematics for programming
 
     @author   :  Luna Sofie Bergh
+
     @date     :  12/03/2024
 
     @brief    :  Hydropulse is a Python-based application designed to simulate a dynamic grid of
@@ -21,9 +22,18 @@
 
 """
 
+# Module Imports
+from Modules import *
+
 # Pyglet Imports
-from pyglet.window import Window, FPSDisplay
+from pyglet.window import Window, FPSDisplay, key
+from pyglet.resource import image
 from pyglet.app import run
+
+
+def user_exit(symbol):
+    if symbol == key.ESCAPE:
+        exit()
 
 
 class MainWindow(Window):
@@ -31,30 +41,44 @@ class MainWindow(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Window size
-        self.width, self.height = self.get_size()
-
-        # Checkpoint
-        print(
-            f"\n\t Application running"
-            f"\n\t Width: {self.width}"
-            f"\n\t Height: {self.height}"
-            )
-
     def on_draw(self):
-        window.clear()
+        self.clear()
         fps_display.draw()
 
 
 if __name__ == '__main__':
 
-    # Window properties
+    # Window Properties
     window = MainWindow(
         caption="HydroPulse  <>  BMA1020 Challenge Assignment 1",
         width=1000,
         height=1000,
         resizable=False
     )
+    window_width, window_height = window.get_size()
+    window_loc_x, window_loc_y = window.get_location()
+
+    # Window Icon
+    image = image("Assets/Images/waterdrop.png")
+    window.set_icon(image)
+
+    # Window FPS
     fps_display = FPSDisplay(window)
+
+    # Window Checkpoint
+    print(
+        f"\n\t Debug Checkpoint"
+        f"\n\t ----------------"
+        f"\n\t {window}"
+        f"\n"
+        f"\n\t Coordinate X: {window_loc_x}"
+        f"\n\t Coordinate Y: {window_loc_y}"
+        f"\n"
+        f"\n\t Width: {window_width}"
+        f"\n\t Height: {window_height}"
+        f"\n"
+        f"\n\t FPS: {fps_display}"
+        f"\n\t Image: {image}"
+    )
 
     run()
