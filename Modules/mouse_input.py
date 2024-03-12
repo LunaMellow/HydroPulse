@@ -5,3 +5,7 @@
     Handles mouse input events and provides coordinates of mouse interactions to other modules.
 
 """
+
+
+class MouseInput:
+    pass
