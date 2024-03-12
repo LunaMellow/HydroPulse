@@ -21,4 +21,40 @@
 
 """
 
-print("Welcome to the HydroPulse")
+# Pyglet Imports
+from pyglet.window import Window, FPSDisplay
+from pyglet.app import run
+
+
+class MainWindow(Window):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Window size
+        self.width, self.height = self.get_size()
+
+        # Checkpoint
+        print(
+            f"\n\t Application running"
+            f"\n\t Width: {self.width}"
+            f"\n\t Height: {self.height}"
+            )
+
+    def on_draw(self):
+        window.clear()
+        fps_display.draw()
+
+
+if __name__ == '__main__':
+
+    # Window properties
+    window = MainWindow(
+        caption="HydroPulse  <>  BMA1020 Challenge Assignment 1",
+        width=1000,
+        height=1000,
+        resizable=False
+    )
+    fps_display = FPSDisplay(window)
+
+    run()
