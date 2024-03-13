@@ -23,10 +23,10 @@
 """
 
 # Module Imports
-from Modules import *
+from Modules.grid import Grid
 
 # Pyglet Imports
-from pyglet.window import Window, FPSDisplay, key
+from pyglet.window import Window, FPSDisplay, mouse, key
 from pyglet.resource import image
 from pyglet.app import run
 
@@ -41,9 +41,20 @@ class MainWindow(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.grid = Grid(self.width, self.height)
+        self.grid.render(amount=20)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == mouse.LEFT:
+            print(f"Left mouse button pressed at ({x}, {y})")
+            self.grid.handle_interaction(x=x, y=y)
+
     def on_draw(self):
         self.clear()
         fps_display.draw()
+
+        for ball in self.grid.balls:
+            ball.shape.draw()
 
 
 if __name__ == '__main__':
