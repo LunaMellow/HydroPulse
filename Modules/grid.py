@@ -40,11 +40,26 @@ class Grid:
                 self.add_ball(ball)
 
     def handle_interaction(self, x, y):
+        clicked_ball = None
+
         for ball in self.balls:
             if (ball.x - ball.radius <= x <= ball.x + ball.radius
                     and ball.y - ball.radius <= y <= ball.y + ball.radius):
-                ball.interaction("active")
-                print(f"A ball was indeed pressed at ({ball.x}, {ball.y})")
+                clicked_ball = ball
+                break
+
+        if clicked_ball:
+            clicked_ball.interaction("active")
+
+            range_multiplier = 50  # Range multiplier for surrounding balls
+            range_x = range_multiplier * self.width / len(self.balls)
+            range_y = range_multiplier * self.height / len(self.balls)
+
+            # Change color of surrounding balls
+            for ball in self.balls:
+                if (abs(ball.x - clicked_ball.x) <= range_x
+                        and abs(ball.y - clicked_ball.y) <= range_y):
+                    ball.interaction("active")
 
 
 class Ball:
