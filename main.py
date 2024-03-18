@@ -22,15 +22,18 @@
 
 """
 
-# Module Imports
-from Modules.grid import Grid
-
 # Pyglet Imports
-from pyglet.window import Window, FPSDisplay, mouse, key
+from pyglet.window import Window, FPSDisplay, key
+from pyglet.clock import schedule_interval
+from pyglet.gl import glClearColor
 from pyglet.resource import image
 from pyglet.app import run
 
+# Module Imports
+from Modules.grid import Grid
 
+
+# Exit function using ESC key
 def user_exit(symbol):
     if symbol == key.ESCAPE:
         exit()
@@ -41,24 +44,32 @@ class MainWindow(Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Grid instance
         self.grid = Grid(self.width, self.height)
-        self.grid.render(amount=20)
+        self.grid.render(amount=40)  # 40 fills up the screen nicely
+
+        # Update
+        schedule_interval(self.update, 1 / 60)
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.grid.handle_interaction(x=x, y=y)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == mouse.LEFT:
-            print(f"Left mouse button pressed at ({x}, {y})")
-            self.grid.handle_interaction(x=x, y=y)
+        self.grid.handle_click(x=x, y=y)
 
     def on_draw(self):
         self.clear()
-        fps_display.draw()
 
         for ball in self.grid.balls:
             ball.shape.draw()
 
+        fps_display.draw()
+
+    def update(self, dt):
+        self.grid.update(dt)
+
 
 if __name__ == '__main__':
-
     # Window Properties
     window = MainWindow(
         caption="HydroPulse  <>  BMA1020 Challenge Assignment 1",
@@ -72,6 +83,9 @@ if __name__ == '__main__':
     # Window Icon
     image = image("Assets/Images/waterdrop.png")
     window.set_icon(image)
+
+    # Window background color
+    glClearColor(0.1, 0, 0.2, 1.0)
 
     # Window FPS
     fps_display = FPSDisplay(window)
@@ -90,6 +104,8 @@ if __name__ == '__main__':
         f"\n"
         f"\n\t FPS: {fps_display}"
         f"\n\t Image: {image}"
+        f"\n"
+        f"\n\t Grid: {window.grid}"
     )
 
     run()

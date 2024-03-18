@@ -6,9 +6,16 @@
 
 """
 
+# Math imports
+from math import pi, cos, sin
+
 # Pyglet imports
 from pyglet.graphics import Batch
 from pyglet.shapes import Circle
+from pyglet.clock import unschedule, schedule_interval
+
+# Module imports
+from Modules.util import lerp
 
 
 class Grid:
@@ -20,46 +27,35 @@ class Grid:
     def add_ball(self, ball):
         self.balls.append(ball)
 
-    def remove_ball(self, ball):
-        self.balls.remove(ball)
-
-    def update(self):
-        for ball in self.balls:
-            ball.update()
-
     def render(self, amount):
-        radius = min(self.width, self.height) // (amount * 4)
-        distance_x = self.width // (amount + 1)
-        distance_y = self.height // (amount + 1)
+        radius = min(self.width, self.height) // (amount * 2)
+        distance_x = self.width // amount
+        distance_y = self.height // amount
 
         for i in range(amount):
-            x = (i + 1) * distance_x
+            x = (i + 0.5) * distance_x
             for j in range(amount):
-                y = (j + 1) * distance_y
+                y = (j + 0.5) * distance_y
                 ball = Ball(x, y, radius)
                 self.add_ball(ball)
 
-    def handle_interaction(self, x, y):
-        clicked_ball = None
+    def update(self, dt):
+        for ball in self.balls:
+            ball.update(dt)
 
+    def handle_click(self, x, y):
         for ball in self.balls:
             if (ball.x - ball.radius <= x <= ball.x + ball.radius
                     and ball.y - ball.radius <= y <= ball.y + ball.radius):
-                clicked_ball = ball
+                ball.click("active")
                 break
 
-        if clicked_ball:
-            clicked_ball.interaction("active")
-
-            range_multiplier = 50  # Range multiplier for surrounding balls
-            range_x = range_multiplier * self.width / len(self.balls)
-            range_y = range_multiplier * self.height / len(self.balls)
-
-            # Change color of surrounding balls
-            for ball in self.balls:
-                if (abs(ball.x - clicked_ball.x) <= range_x
-                        and abs(ball.y - clicked_ball.y) <= range_y):
-                    ball.interaction("active")
+    def handle_interaction(self, x, y):
+        for ball in self.balls:
+            if (ball.x - ball.radius <= x <= ball.x + ball.radius
+                    and ball.y - ball.radius <= y <= ball.y + ball.radius):
+                ball.interaction("active")
+                break
 
 
 class Ball:
@@ -68,29 +64,83 @@ class Ball:
     def __init__(self, x, y, radius):
         self.x = x
         self.y = y
+        self.start_x = x
+        self.start_y = y
+
         self.radius = radius
-        self.color = (255, 255, 255)
-        self.state = "idle"  # Default state
+
+        self.color = (49, 0, 71)
+        self.target_color = (49, 0, 71)
+        self.start_color = None
+
+        self.state = "idle"
+        self.interpolation_duration = 0.35
+        self.interpolation_timer = 0.0
+        self.interpolation_intensity = 5.0
 
         self.shape = Circle(
             x=x,
             y=y,
             radius=radius,
             color=self.color,
-            segments=6,
+            segments=20,
             batch=Ball.batch
         )
 
-    def set_position(self, x, y):
-        self.x = x
-        self.y = y
+    def update(self, dt):
+        if self.state in {"active"}:
+            self.interpolation_timer += dt
+            t = self.interpolation_timer / self.interpolation_duration
+            if t <= 1.0:
+                angle = t * 2 * pi
+                interpolation_x = sin(angle) * self.interpolation_intensity
+                interpolation_y = cos(angle) * self.interpolation_intensity
+                self.x = self.start_x + interpolation_x
+                self.y = self.start_y + interpolation_y
+                self.shape.x = self.x
+                self.shape.y = self.y
+            else:
+                self.state = "idle"
+                self.x = self.start_x
+                self.y = self.start_y
+                self.shape.x = self.x
+                self.shape.y = self.y
 
-    def set_color(self, color):
-        self.color = color
+    def click(self, state):
+        print(f"\t click() state = {state}")
+        unschedule(self.interpolate_color)
+        self.shape.color = (150, 20, 208)
 
     def interaction(self, state):
-        if state == "idle":
-            self.shape.color = (255, 255, 255)
-        elif state == "active":
-            self.shape.color = (255, 0, 0)
+        if state == "active":
+            self.target_color = (150, 20, 208)
+        elif state == "idle":
+            self.target_color = (49, 0, 71)
 
+        if self.state != state:
+            self.start_color = self.shape.color
+            self.state = state
+            self.interpolation_timer = 0.0
+            schedule_interval(self.interpolate_color, 1 / 60.0)
+        else:
+            self.interpolation_timer = 0.0
+
+    def interpolate_color(self, dt):
+        t = min(1.0, self.interpolation_timer / self.interpolation_duration)
+        if self.state == "active":
+            start_color = self.start_color
+            target_color = self.target_color
+        else:
+            start_color = self.target_color
+            target_color = self.start_color
+
+        current_color = (
+            int(lerp(start_color[0], target_color[0], t)),
+            int(lerp(start_color[1], target_color[1], t)),
+            int(lerp(start_color[2], target_color[2], t))
+        )
+
+        self.shape.color = current_color
+
+        if t >= 1.0:
+            unschedule(self.interpolate_color)
