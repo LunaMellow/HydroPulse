@@ -43,12 +43,13 @@ class Grid:
         for ball in self.balls:
             ball.update(dt)
 
-    def handle_click(self, x, y):
-        for ball in self.balls:
-            if (ball.x - ball.radius <= x <= ball.x + ball.radius
-                    and ball.y - ball.radius <= y <= ball.y + ball.radius):
-                ball.click("active")
-                break
+    def handle_click(self, x, y, range_multiplier):
+        clicked_ball = next((ball for ball in self.balls if
+                             ball.x - ball.radius <= x <= ball.x + ball.radius and
+                             ball.y - ball.radius <= y <= ball.y + ball.radius), None)
+
+        if clicked_ball:
+            clicked_ball.click(self, range_multiplier)
 
     def handle_interaction(self, x, y):
         for ball in self.balls:
@@ -64,6 +65,8 @@ class Ball:
     def __init__(self, x, y, radius):
         self.x = x
         self.y = y
+        self.initial_x = x
+        self.initial_y = y
         self.start_x = x
         self.start_y = y
 
@@ -74,7 +77,7 @@ class Ball:
         self.start_color = None
 
         self.state = "idle"
-        self.interpolation_duration = 0.35
+        self.interpolation_duration = 0.4
         self.interpolation_timer = 0.0
         self.interpolation_intensity = 5.0
 
@@ -95,8 +98,8 @@ class Ball:
                 angle = t * 2 * pi
                 interpolation_x = sin(angle) * self.interpolation_intensity
                 interpolation_y = cos(angle) * self.interpolation_intensity
-                self.x = self.start_x + interpolation_x
-                self.y = self.start_y + interpolation_y
+                self.x = self.initial_x + interpolation_x
+                self.y = self.initial_y + interpolation_y
                 self.shape.x = self.x
                 self.shape.y = self.y
             else:
@@ -106,10 +109,13 @@ class Ball:
                 self.shape.x = self.x
                 self.shape.y = self.y
 
-    def click(self, state):
-        print(f"\t click() state = {state}")
-        unschedule(self.interpolate_color)
-        self.shape.color = (150, 20, 208)
+    def click(self, grid, range_multiplier):
+        for ball in grid.balls:
+            distance_from_clicked = ((self.initial_x - ball.x) ** 2 +
+                                     (self.initial_y - ball.y) ** 2) ** 0.5
+            if distance_from_clicked <= range_multiplier * self.radius:
+                ball.interaction("active")
+                ball.interpolate_color(0)
 
     def interaction(self, state):
         if state == "active":

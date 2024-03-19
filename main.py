@@ -23,7 +23,7 @@
 """
 
 # Pyglet Imports
-from pyglet.window import Window, FPSDisplay, key
+from pyglet.window import Window, FPSDisplay, mouse, key
 from pyglet.clock import schedule_interval
 from pyglet.gl import glClearColor
 from pyglet.resource import image
@@ -55,7 +55,8 @@ class MainWindow(Window):
         self.grid.handle_interaction(x=x, y=y)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        self.grid.handle_click(x=x, y=y)
+        range_multiplier = 5
+        self.grid.handle_click(x, y, range_multiplier)
 
     def on_draw(self):
         self.clear()
@@ -63,7 +64,7 @@ class MainWindow(Window):
         for ball in self.grid.balls:
             ball.shape.draw()
 
-        fps_display.draw()
+        # fps_display.draw()
 
     def update(self, dt):
         self.grid.update(dt)
