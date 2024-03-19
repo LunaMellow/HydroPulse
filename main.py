@@ -55,7 +55,7 @@ class MainWindow(Window):
         self.grid.handle_interaction(x=x, y=y)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        range_multiplier = 5
+        range_multiplier = 5  # Range of surrounding balls selected
         self.grid.handle_click(x, y, range_multiplier)
 
     def on_draw(self):
